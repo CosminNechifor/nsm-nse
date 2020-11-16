@@ -3,7 +3,9 @@ package config
 import (
 	"bytes"
 	"context"
+	"crypto/tls"
 	"fmt"
+	"github.com/spiffe/go-spiffe/v2/spiffetls/tlsconfig"
 	"os"
 	"strconv"
 	"time"
@@ -16,6 +18,9 @@ import (
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
+
+	"github.com/spiffe/go-spiffe/v2/spiffeid"
+	"github.com/spiffe/go-spiffe/v2/workloadapi"
 )
 
 type IpamService interface {
@@ -26,6 +31,10 @@ type IpamServiceImpl struct {
 	IpamAllocator     ipprovider.AllocatorClient
 	RegisteredSubnets chan *ipprovider.Subnet
 }
+
+const (
+	socketPath = "unix:///run/spire/sockets/agent.sock"
+)
 
 func (i *IpamServiceImpl) AllocateSubnet(ucnfEndpoint *nseconfig.Endpoint) (string, error) {
 	var subnet *ipprovider.Subnet
@@ -108,6 +117,35 @@ func (es errors) Error() string {
 	return buff.String()
 }
 
+func getTlsConfigFromSpire(trustDomain string) (*tls.Config, error) {
+	ctx := context.Background()
+	x509Src, err := workloadapi.NewX509Source(ctx,
+		workloadapi.WithClientOptions(
+			workloadapi.WithAddr(socketPath),
+		),
+	)
+
+	if err != nil {
+		logrus.Error("Could not get the x509 source", err)
+		return nil, err
+	}
+
+	trustDom, err := spiffeid.TrustDomainFromString(trustDomain)
+	if err != nil {
+		return nil, err
+	}
+
+	bundleSrc, err := x509Src.GetX509BundleForTrustDomain(trustDom)
+	if err != nil {
+		logrus.Info("Could not obtain trust domain bundle", err)
+		return nil, err
+	}
+
+	mtlsConfig := tlsconfig.MTLSClientConfig(x509Src, bundleSrc, tlsconfig.AuthorizeMemberOf(trustDom))
+
+	return mtlsConfig, nil
+}
+
 func NewIpamService(ctx context.Context, addr string) (IpamService, error) {
 	insecure, err := strconv.ParseBool(os.Getenv(tools.InsecureEnv))
 	if err != nil {
@@ -126,7 +164,12 @@ func NewIpamService(ctx context.Context, addr string) (IpamService, error) {
 			)
 			opts = append(opts, grpc.WithInsecure())
 		} else {
-			logrus.Info("GRPC connection will be secured.")
+
+			tlsConfig, err = getTlsConfigFromSpire("central.com")
+			if err != nil {
+				logrus.Error("Could not obtain tls config", err)
+			}
+
 			opts = append(opts, grpc.WithTransportCredentials(credentials.NewTLS(tlsConfig)))
 		}
 	} else {
@@ -144,6 +187,7 @@ func NewIpamService(ctx context.Context, addr string) (IpamService, error) {
 		IpamAllocator:     ipamAllocator,
 		RegisteredSubnets: make(chan *ipprovider.Subnet),
 	}
+
 	go func() {
 		logrus.Info("begin the ipam leased subnet renew process")
 		if err := ipamService.Renew(ctx, func(err error) {
