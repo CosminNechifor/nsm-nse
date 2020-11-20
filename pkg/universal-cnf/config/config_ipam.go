@@ -3,9 +3,7 @@ package config
 import (
 	"bytes"
 	"context"
-	"crypto/tls"
 	"fmt"
-	"github.com/spiffe/go-spiffe/v2/spiffetls/tlsconfig"
 	"os"
 	"strconv"
 	"time"
@@ -18,9 +16,6 @@ import (
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
-
-	"github.com/spiffe/go-spiffe/v2/spiffeid"
-	"github.com/spiffe/go-spiffe/v2/workloadapi"
 )
 
 type IpamService interface {
@@ -115,35 +110,6 @@ func (es errors) Error() string {
 		_, _ = fmt.Fprintf(buff, "\t%s\n", e)
 	}
 	return buff.String()
-}
-
-func getTlsConfigFromSpire(trustDomain string) (*tls.Config, error) {
-	ctx := context.Background()
-	x509Src, err := workloadapi.NewX509Source(ctx,
-		workloadapi.WithClientOptions(
-			workloadapi.WithAddr(socketPath),
-		),
-	)
-
-	if err != nil {
-		logrus.Error("Could not get the x509 source", err)
-		return nil, err
-	}
-
-	trustDom, err := spiffeid.TrustDomainFromString(trustDomain)
-	if err != nil {
-		return nil, err
-	}
-
-	bundleSrc, err := x509Src.GetX509BundleForTrustDomain(trustDom)
-	if err != nil {
-		logrus.Info("Could not obtain trust domain bundle", err)
-		return nil, err
-	}
-
-	mtlsConfig := tlsconfig.MTLSClientConfig(x509Src, bundleSrc, tlsconfig.AuthorizeMemberOf(trustDom))
-
-	return mtlsConfig, nil
 }
 
 func NewIpamService(ctx context.Context, addr string) (IpamService, error) {
