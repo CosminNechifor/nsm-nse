@@ -157,19 +157,14 @@ func NewIpamService(ctx context.Context, addr string) (IpamService, error) {
 
 	// If we have a service provider and we want to run in secure mode
 	if !insecure && tools.GetConfig().SecurityProvider != nil {
-		if tlsConfig, err := tools.GetConfig().SecurityProvider.GetTLSConfig(ctx); err != nil {
+		if tlsConfig, err := tools.GetConfig().SecurityProvider.GetTLSConfigByID(ctx, "central.com"); err != nil {
 			logrus.Errorf(
 				"Failed getting tls config with error: %v. GRPC connection will be insecure.",
 				err,
 			)
 			opts = append(opts, grpc.WithInsecure())
 		} else {
-
-			tlsConfig, err = getTlsConfigFromSpire("central.com")
-			if err != nil {
-				logrus.Error("Could not obtain tls config", err)
-			}
-
+			logrus.Info("Got tls certificate!")
 			opts = append(opts, grpc.WithTransportCredentials(credentials.NewTLS(tlsConfig)))
 		}
 	} else {
