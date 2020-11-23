@@ -484,6 +484,7 @@ func newVL3ConnectComposite(configuration *common.NSConfiguration, vL3NetCidr st
 		regPort, _ := strconv.Atoi(nsRegPort)
 		nsRegGrpcClient, err := tools.SocketOperationCheck(&net.TCPAddr{IP: regAddr, Port: regPort})
 	*/
+	logrus.Info("[cosmin]vl3_connet.go", nsRegAddr+":"+nsRegPort)
 	nsRegGrpcClient, err := tools.DialTCP(nsRegAddr + ":" + nsRegPort)
 	if err != nil {
 		logrus.Errorf("nsmRegistryConnection GRPC Client Socket Error: %v", err)

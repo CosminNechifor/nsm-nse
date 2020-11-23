@@ -138,7 +138,9 @@ func NewIpamService(ctx context.Context, addr string) (IpamService, error) {
 		opts = append(opts, grpc.WithInsecure())
 	}
 
-	conn, err := grpc.Dial(addr, opts...)
+	logrus.Info("[cosmin] NewIpamService", addr)
+	conn, err := tools.DialTCP(addr, opts...)
+	logrus.Info("[cosmin] this should be for central.com")
 	if err != nil {
 		return &IpamServiceImpl{}, fmt.Errorf("unable to connect to ipam server: %v", err)
 	}

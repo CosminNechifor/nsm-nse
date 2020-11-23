@@ -54,7 +54,9 @@ func NewServiceRegistry(addr string, ctx context.Context) (ServiceRegistry, Serv
 		opts = append(opts, grpc.WithInsecure())
 	}
 
+	logrus.Info("[NewServiceRegistry] cosmin ", addr)
 	conn, err := grpc.Dial(addr, opts...)
+	logrus.Info("Should get the member1 config")
 	if err != nil {
 		return nil, nil, fmt.Errorf("unable to connect to ServiceRegistry: %w", err)
 	}
