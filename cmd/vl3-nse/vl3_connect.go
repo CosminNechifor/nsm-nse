@@ -2,8 +2,11 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"os"
+	"reflect"
 	"sync"
+	"unsafe"
 
 	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/networkservicemesh/networkservicemesh/controlplane/api/connection"
@@ -68,6 +71,33 @@ type vL3ConnectComposite struct {
 	myNseNameFunc  fnGetNseName
 	connDomain     string
 	nseControlAddr string
+}
+
+func printContextInternals(ctx interface{}, inner bool) {
+	contextValues := reflect.ValueOf(ctx).Elem()
+	contextKeys := reflect.TypeOf(ctx).Elem()
+
+	if !inner {
+		fmt.Printf("\nFields for %s.%s\n", contextKeys.PkgPath(), contextKeys.Name())
+	}
+
+	if contextKeys.Kind() == reflect.Struct {
+		for i := 0; i < contextValues.NumField(); i++ {
+			reflectValue := contextValues.Field(i)
+			reflectValue = reflect.NewAt(reflectValue.Type(), unsafe.Pointer(reflectValue.UnsafeAddr())).Elem()
+
+			reflectField := contextKeys.Field(i)
+
+			if reflectField.Name == "Context" {
+				printContextInternals(reflectValue.Interface(), true)
+			} else {
+				fmt.Printf("field name: %+v\n", reflectField.Name)
+				fmt.Printf("value: %+v\n", reflectValue.Interface())
+			}
+		}
+	} else {
+		fmt.Printf("context is empty (int)\n")
+	}
 }
 
 func (peer *vL3NsePeer) setPeerState(state vL3PeerState) {
@@ -235,6 +265,20 @@ func (vxc *vL3ConnectComposite) Request(ctx context.Context,
 		if err != nil {
 			logger.Error(err)
 		} else {
+
+			workingContext := context.Background()
+			logrus.Info("----------------------------------------------------")
+			logrus.Info("Working context inside Request function of vl3_connect")
+			printContextInternals(workingContext, true)
+			logrus.Info("----------------------------------------------------")
+			logrus.Info("")
+			logrus.Info("")
+			logrus.Info("")
+			logrus.Info("----------------------------------------------------")
+			logrus.Info("Attempt context inside Requst function of vl3_connect")
+			printContextInternals(ctx, true)
+			logrus.Info("----------------------------------------------------")
+
 			err = serviceRegistry.RegisterWorkload(ctx, conn.Labels, vxc.connDomain,
 				processWorkloadIps(conn.Context.IpContext.SrcIpAddr, ";"))
 			if err != nil {
@@ -266,6 +310,18 @@ func (vxc *vL3ConnectComposite) Close(ctx context.Context, conn *connection.Conn
 		if err != nil {
 			logrus.Error(err)
 		} else {
+			workingContext := context.Background()
+			logrus.Info("----------------------------------------------------")
+			logrus.Info("Working context inside Close function of vl3_connect")
+			printContextInternals(workingContext, true)
+			logrus.Info("----------------------------------------------------")
+			logrus.Info("")
+			logrus.Info("")
+			logrus.Info("")
+			logrus.Info("----------------------------------------------------")
+			logrus.Info("Attempt context inside Close function of vl3_connect")
+			printContextInternals(ctx, true)
+			logrus.Info("----------------------------------------------------")
 			err = serviceRegistry.RemoveWorkload(ctx, conn.Labels, vxc.connDomain,
 				processWorkloadIps(conn.Context.IpContext.SrcIpAddr, ";"))
 			if err != nil {

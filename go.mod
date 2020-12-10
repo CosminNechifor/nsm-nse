@@ -10,7 +10,7 @@ replace (
 	github.com/networkservicemesh/networkservicemesh/k8s => github.com/cisco-app-networking/networkservicemesh/k8s v0.2.3-vl3
 	github.com/networkservicemesh/networkservicemesh/k8s/pkg/apis => github.com/cisco-app-networking/networkservicemesh/k8s/pkg/apis v0.2.3-vl3
 	github.com/networkservicemesh/networkservicemesh/pkg => ../../cisco-app-networking/networkservicemesh/pkg
-	github.com/networkservicemesh/networkservicemesh/sdk => github.com/cisco-app-networking/networkservicemesh/sdk v0.2.3-vl3
+	github.com/networkservicemesh/networkservicemesh/sdk => ../../cisco-app-networking/networkservicemesh/sdk
 	github.com/networkservicemesh/networkservicemesh/utils => github.com/cisco-app-networking/networkservicemesh/utils v0.2.3-vl3
 )
 

@@ -23,10 +23,6 @@ type IpamServiceImpl struct {
 	RegisteredSubnets chan *ipprovider.Subnet
 }
 
-const (
-	socketPath = "unix:///run/spire/sockets/agent.sock"
-)
-
 func (i *IpamServiceImpl) AllocateSubnet(ucnfEndpoint *nseconfig.Endpoint) (string, error) {
 	var subnet *ipprovider.Subnet
 	for j := 0; j < 6; j++ {
