@@ -261,6 +261,7 @@ func (vxc *vL3ConnectComposite) Request(ctx context.Context,
 	if err != nil {
 		logger.Errorf("vL3 workload params not in labels: %v", err)
 	} else {
+		logrus.Info("nseControlAddr:", vxc.nseControlAddr)
 		serviceRegistry, registryClient, err := NewServiceRegistry(vxc.nseControlAddr, ctx)
 		if err != nil {
 			logger.Error(err)
@@ -541,6 +542,7 @@ func newVL3ConnectComposite(configuration *common.NSConfiguration, vL3NetCidr st
 		nsRegGrpcClient, err := tools.SocketOperationCheck(&net.TCPAddr{IP: regAddr, Port: regPort})
 	*/
 	nsRegGrpcClient, err := tools.DialTCP(nsRegAddr + ":" + nsRegPort)
+	logrus.Info("nsreggrpcClient:", nsRegAddr + ":" + nsRegPort)
 	if err != nil {
 		logrus.Errorf("nsmRegistryConnection GRPC Client Socket Error: %v", err)
 		//return nil
