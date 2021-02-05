@@ -12,6 +12,7 @@ replace (
 	github.com/networkservicemesh/networkservicemesh/pkg => ../../cisco-app-networking/networkservicemesh/pkg
 	github.com/networkservicemesh/networkservicemesh/sdk => ../../cisco-app-networking/networkservicemesh/sdk
 	github.com/networkservicemesh/networkservicemesh/utils => github.com/cisco-app-networking/networkservicemesh/utils v0.2.3-vl3
+	google.golang.org/grpc => google.golang.org/grpc v1.29.1
 )
 
 require (
@@ -19,7 +20,6 @@ require (
 	github.com/davecgh/go-spew v1.1.1
 	github.com/gofrs/uuid v3.2.0+incompatible
 	github.com/golang/protobuf v1.4.2
-	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0
 	github.com/grpc-ecosystem/grpc-opentracing v0.0.0-20180507213350-8e809c8a8645
 	github.com/networkservicemesh/networkservicemesh/controlplane/api v0.3.0
 	github.com/networkservicemesh/networkservicemesh/pkg v0.3.0
@@ -29,7 +29,6 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.1.0
 	github.com/sirupsen/logrus v1.6.0
-	github.com/spiffe/go-spiffe/v2 v2.0.0-beta.2 // indirect
 	go.ligato.io/vpp-agent/v3 v3.2.0
 	golang.org/x/sync v0.0.0-20190911185100-cd5d95a43a6e
 	google.golang.org/grpc v1.33.2
